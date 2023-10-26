@@ -1,0 +1,8 @@
+-> get the deposit
+-> get no of lines
+-> get the bet
+-> cal total amount and check if its in range
+-> make the spinning wheels
+-> spin it
+-> check if win or loose
+-> accordingly change the balance
