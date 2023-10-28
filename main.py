@@ -1,5 +1,6 @@
 import numpy as np
 import random
+import os, csv
 
 MIN_BET = 10
 MAX_BET= 100
@@ -22,6 +23,49 @@ spin_value = {
     "🙃": 3
 }
 
+
+def write_player_data(name, balance):
+    with open("ledger.csv", 'a') as file:
+        writer = csv.DictWriter(file, fieldnames=["name","balance"])
+        if os.stat("ledger.csv").st_size != 0:
+            writer.writeheader
+        writer.writerow({
+            "name":name,
+            "balance": balance
+        })
+        
+
+
+def get_the_player():
+    flag = 0
+    name = input("Enter Your name: ")
+    
+    # check if name is there in the file
+    if os.stat("ledger.csv").st_size != 0:
+        with open("ledger.csv", 'r') as file:
+            reader = csv.DictReader(file)
+            for row in reader:
+                if row["name"] == name:
+                    flag = 1
+                    player_balance = int(row["balance"])
+                break
+        if flag:
+            print(f"Your current balance is {player_balance}")
+            if player_balance < MIN_BET:
+                print("You dont have enough balance, please add to continue")
+                player_balance = deposite()
+        else:
+            print(f"Player not found. Creating new player with name {name}")
+            player_balance = deposite()
+            write_player_data(name, player_balance)
+            
+    else:
+        write_player_data(name, player_balance)
+
+    
+    return player_balance, name
+
+    
 def deposite():
     while True:
         depo = input("Enter the total amount to deposite: rs ")
@@ -129,7 +173,7 @@ def play_game(balance):
     
 
 def main():
-    balance = deposite()
+    balance, player_name = get_the_player()
     
     while True:
         try:
@@ -137,7 +181,26 @@ def main():
         except KeyboardInterrupt:
             return
         if ans == 'q':
+            with open("ledger.csv", 'r+') as file:
+                reader = csv.DictReader(file)
+                fieldnames = reader.fieldnames
+                data = list(reader)
+                
+                # find the entry eith specific name and update the balance
+                for row in data:
+                    if row["name"] == player_name:
+                        if row["balance"] == balance:
+                            break
+                        row["balance"] = balance
+                    break
+                # move the file pointer to the beginning
+                file.seek(0)
+                
+                writer = csv.DictWriter(file, fieldnames=fieldnames)
+                writer.writeheader()
+                writer.writerows(data)  
             break
+        
         balance += play_game(balance)
         print(f"Current balance Rs {balance}")
         
